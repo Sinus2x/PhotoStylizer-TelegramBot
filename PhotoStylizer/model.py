@@ -19,7 +19,7 @@ class StyleTransformer(nn.Module):
         self.n_style_layers = len(self.style_layers)
         self.vgg = vgg19(pretrained=True).features[:29].eval()  # vgg's feature extractor excluding layers after 28th
         self.cfg = {
-            'epochs': 2000,
+            'epochs': 600,
             'lr': 0.01,
             'alpha': 1,
             'beta': 1 / 5,
@@ -32,9 +32,7 @@ class StyleTransformer(nn.Module):
         self.preprocess = tt.Compose(
             [
                 tt.Resize((image_size, image_size)),
-                tt.ToTensor(),
-                tt.Normalize(mean=[0.485, 0.456, 0.406],
-                             std=[0.229, 0.224, 0.225])
+                tt.ToTensor()
             ]
         )
 
@@ -84,23 +82,19 @@ class StyleTransformer(nn.Module):
             opt.step()
             opt.zero_grad()
 
+            # turn pixels into [0, 1] range to avoid noise
+            with torch.no_grad():
+                init.clamp_(0, 1)
+
             print(f'Epoch {epoch}: {c_loss, s_loss, loss}')
 
         return tt.ToPILImage()(
-            self.denorm(init.squeeze(0).detach().cpu())
+            init.squeeze(0).detach().cpu()
         )
 
     def load_image(self, path):
         img = Image.open(path)
         img = self.preprocess(img)
-        return img
-
-    @staticmethod
-    def denorm(img: torch.Tensor) -> torch.Tensor:
-        img = torch.permute(img, (1, 2, 0))
-        mean, std = torch.tensor([0.485, 0.456, 0.406]), torch.tensor([0.229, 0.224, 0.225])
-        img = img * std + mean
-        img = torch.permute(img, (2, 0, 1))
         return img
 
 
