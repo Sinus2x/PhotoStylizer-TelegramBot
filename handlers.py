@@ -1,6 +1,6 @@
-from main import Dialog
 from main import dp
 from keyboards import kb
+from states import Dialog
 
 import aiogram.types as types
 from aiogram.dispatcher.filters import Text
