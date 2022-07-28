@@ -1,6 +1,6 @@
 import logging
 
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.utils import executor
@@ -12,10 +12,6 @@ logging.basicConfig(level=logging.INFO)
 bot = Bot(token=BOT_TOKEN)
 storage = MemoryStorage()
 dp = Dispatcher(bot, storage=storage)
-
-kb = types.InlineKeyboardMarkup(row_width=2)
-kb.row(types.InlineKeyboardButton(text='Ок', callback_data='yes'),
-       types.InlineKeyboardButton(text='Поменять фото', callback_data='change'))
 
 
 class Dialog(StatesGroup):
