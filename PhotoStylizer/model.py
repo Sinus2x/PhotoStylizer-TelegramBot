@@ -19,10 +19,9 @@ class StyleTransformer(nn.Module):
         self.n_style_layers = len(self.style_layers)
         self.vgg = vgg19(pretrained=True).features[:29].eval()  # vgg's feature extractor excluding layers after 28th
         self.cfg = {
-            'epochs': 600,
+            'epochs': 100,
             'lr': 0.01,
             'alpha': 1,
-            'beta': 1 / 5,
             'gamma': 100
         }
         # freeze the weights
@@ -52,6 +51,7 @@ class StyleTransformer(nn.Module):
     def transfer(self, inp, reference):
         inp = self.load_image(inp).unsqueeze(0).to(self.device)
         reference = self.load_image(reference).unsqueeze(0).to(self.device)
+
         init = torch.clone(inp).to(self.device)
         init.requires_grad = True
         opt = torch.optim.Adam([init], lr=self.cfg['lr'])
@@ -70,17 +70,17 @@ class StyleTransformer(nn.Module):
 
             # compute content loss
             for init_c, inp_c in zip(init_content, inp_content):
-                c_loss += self.cfg['alpha'] * content_loss(inp_c.detach(), init_c)
+                c_loss += content_loss(inp_c.detach(), init_c)
 
             # compute style loss
             for init_s, g_ref in zip(init_style, g_reference):
-                s_loss += self.cfg['beta'] * style_loss(g_ref.detach(), init_s)
+                s_loss += style_loss(g_ref.detach(), init_s)
 
             loss = c_loss + self.cfg['gamma'] * s_loss
 
+            opt.zero_grad()
             loss.backward()
             opt.step()
-            opt.zero_grad()
 
             # turn pixels into [0, 1] range to avoid noise
             with torch.no_grad():
