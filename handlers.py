@@ -1,18 +1,17 @@
-from main import Dialog
 from main import dp
 from keyboards import kb
+from states import Dialog
 
 import aiogram.types as types
 from aiogram.dispatcher.filters import Text
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ContentType
 
-from PhotoStylizer.model import StyleTransformer
-
 import asyncio
+import logging
 from io import BytesIO
 
-import logging
+from PhotoStylizer.model import StyleTransformer
 
 
 @dp.message_handler(commands=['start'])
@@ -67,6 +66,7 @@ async def get_style_photo(msg: types.Message, state: FSMContext):
     photo = msg.photo[-1]
     await state.update_data(style=photo)
     await msg.answer('Начать перенос?', reply_markup=kb)
+
 
 @dp.callback_query_handler(text='yes', state=Dialog.style_photo)
 async def process(call: types.CallbackQuery, state: FSMContext):
