@@ -19,7 +19,7 @@ class StyleTransformer(nn.Module):
         self.n_style_layers = len(self.style_layers)
         self.vgg = vgg19(pretrained=True).features[:29].eval()  # vgg's feature extractor excluding layers after 28th
         self.cfg = {
-            'epochs': 100,
+            'epochs': 600,
             'lr': 0.01,
             'alpha': 1,
             'gamma': 100
