@@ -10,7 +10,7 @@ class StyleTransformer(nn.Module):
 
     def __init__(self, image_size=224):
         super().__init__()
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        self.device = 'cpu'
         self.image_size = image_size
         self.content_layers = ['21']  # conv-4_2
         self.style_layers = ['0', '5', '10', '19', '28']  # conv1_1, conv2_1, conv3_1, conv4_1 and conv5_1
