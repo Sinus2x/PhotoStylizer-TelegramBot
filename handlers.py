@@ -27,9 +27,6 @@ async def welcome(msg: types.Message):
 @dp.message_handler(state='*', commands='cancel')
 @dp.message_handler(Text(equals='cancel', ignore_case=True), state='*')
 async def cancel_handler(message: types.Message, state: FSMContext):
-     """
-     Allow user to cancel any action
-     """
      print('cancel')
      current_state = await state.get_state()
      if current_state is None:
@@ -90,8 +87,10 @@ async def process(call: types.CallbackQuery, state: FSMContext):
         img.save(bio, 'JPEG')
         bio.seek(0)
 
-        await call.message.answer_photo(bio, caption='Done')
-        await state.update_data(res=bio)
+    await call.message.answer_photo(bio, caption='Done')
+    await state.finish()
+    print('Finished', await state.get_state())
+
 
 
 @dp.callback_query_handler(text='yes', state=Dialog.content_photo)
