@@ -49,6 +49,7 @@ class StyleTransformer(nn.Module):
         return content, style
 
     def transfer(self, inp, reference):
+        w, h = Image.open(inp).size  # get original size
         inp = self.load_image(inp).unsqueeze(0).to(self.device)
         reference = self.load_image(reference).unsqueeze(0).to(self.device)
 
@@ -89,7 +90,9 @@ class StyleTransformer(nn.Module):
             print(f'Epoch {epoch}: {c_loss, s_loss, loss}')
 
         return tt.ToPILImage()(
-            init.squeeze(0).detach().cpu()
+            tt.Resize((h, w))(
+                init.squeeze(0).detach().cpu()
+            )
         )
 
     def load_image(self, path):
