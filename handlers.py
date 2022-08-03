@@ -16,9 +16,8 @@ from PhotoStylizer.model import StyleTransformer
 
 @dp.message_handler(commands=['start'])
 async def welcome(msg: types.Message):
-    greeting = "Привет. Это бот для стилизации изображений.\nОтправь *два* изображения:" \
-               "\n1) Изображение, *на которое хочешь перенести стиль*" \
-               "\n2) Изображение, *содержащее желаемый стиль*."
+    greeting = "Привет. Это бот для стилизации изображений.\n" \
+               "Отправь фото, ***на которое ты хочешь перенести стиль***."
 
     await Dialog.content_photo.set()
     await msg.answer(greeting, parse_mode='markdown')
@@ -33,10 +32,15 @@ async def cancel_handler(message: types.Message, state: FSMContext):
         return
 
      logging.info('Cancelling state %r', current_state)
+
      # Cancel state and inform user about it
-     await state.finish()
+     await state.reset_data()
+     await Dialog.content_photo.set()
+
      # And remove keyboard (just in case)
-     await message.reply('Начнём заново.', reply_markup=types.ReplyKeyboardRemove())
+     await message.reply('Начнём заново.\n'
+                         'Отправьте фото, на которое хотите стиль',
+                         reply_markup=types.ReplyKeyboardRemove())
 
 
 @dp.message_handler(state=Dialog.content_photo, content_types=ContentType.all())
@@ -47,7 +51,8 @@ async def get_photo(msg: types.Message, state: FSMContext):
         await msg.reply('Нужно фото')
         return
 
-    await msg.reply('Получил фото.\nТеперь отправьте фото со стилем')
+    await msg.reply('Получил фото.\nТеперь отправьте фото ***со стилем***',
+                    parse_mode='markdown')
     photo = msg.photo[-1]
     await state.update_data(content=photo)
     await msg.answer('Подтверждаете фото?', reply_markup=kb)
@@ -87,26 +92,29 @@ async def process(call: types.CallbackQuery, state: FSMContext):
         img.save(bio, 'JPEG')
         bio.seek(0)
 
-    await call.message.answer_photo(bio, caption='Done')
+    await call.message.answer_photo(bio, caption='Done!\n'
+                                                 'Для продолжения используйте команду /start.')
     await state.finish()
     print('Finished', await state.get_state())
-
 
 
 @dp.callback_query_handler(text='yes', state=Dialog.content_photo)
 async def process(call: types.CallbackQuery):
     await Dialog.style_photo.set()
-    await call.message.answer('Отлично\nТеперь отправьте фото со стилем.')
+    await call.message.answer('Отлично\nТеперь отправьте фото ***со стилем***.',
+                              parse_mode='markdown')
     await call.answer()
 
 
 @dp.callback_query_handler(text='change', state=Dialog.content_photo)
 async def change_photo(call: types.CallbackQuery):
-    await call.message.answer('Пришли новое фото, на которое хочешь перенести стиль')
+    await call.message.answer('Пришли новое фото, ***на которое хочешь перенести стиль***',
+                              parse_mode='markdown')
     await call.answer()
 
 
 @dp.callback_query_handler(text='change', state=Dialog.style_photo)
 async def change_photo(call: types.CallbackQuery):
-    await call.message.answer('Пришли новое фото со стилем.')
+    await call.message.answer('Пришли новое фото ***со стилем***.',
+                              parse_mode='markdown')
     await call.answer()
